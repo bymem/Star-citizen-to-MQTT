@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      # On Linux this includes the replay -> record -> decode round-trip
+      # test (tests/round_trip.rs is Unix-only).
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build Windows test exe
+        if: runner.os == 'Windows'
+        run: cargo build --release --locked -p sc-recorder
+
+      - name: Upload Windows test exe
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sc-recorder-windows-test
+          path: target/release/sc-recorder.exe
+          if-no-files-found: error
