@@ -1,0 +1,16 @@
+# Dev-only toolchain image. Keeps Rust off the host: all cargo commands run here
+# through the ./dev wrapper. Not used by CI or for releases.
+FROM rust:1-bookworm
+
+RUN rustup component add clippy rustfmt
+
+# Cargo cache and build output live in named volumes (see docker-compose.yml),
+# not in the repo. World-writable so the container can run as the host user.
+ENV CARGO_HOME=/cargo \
+    CARGO_TARGET_DIR=/target \
+    HOME=/tmp
+RUN mkdir -p /cargo /target && chmod 777 /cargo /target
+
+# Lets us type-check the #[cfg(windows)] code paths with
+# `cargo check --target x86_64-pc-windows-msvc` (check only, no linking).
+RUN rustup target add x86_64-pc-windows-msvc

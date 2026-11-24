@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Run a command in the Rust dev container as the host user, so files it
+# creates in the repo (Cargo.lock, formatted sources) are owned by you.
+#   ./dev cargo test
+#   ./dev cargo run -p sc-recorder -- replay rec.zip
+set -euo pipefail
+cd "$(dirname "$0")"
+
+# Only ask for a TTY when we have one (scripts and CI-like shells don't).
+tty_flag=()
+if [ ! -t 0 ] || [ ! -t 1 ]; then
+    tty_flag=(-T)
+fi
+
+exec docker compose run --rm "${tty_flag[@]}" --user "$(id -u):$(id -g)" dev "$@"

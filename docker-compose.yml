@@ -1,0 +1,16 @@
+# Dev environment only. Usage: ./dev cargo test
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: sc-mqtt-dev
+    working_dir: /work
+    volumes:
+      - .:/work
+      - cargo-home:/cargo
+      - cargo-target:/target
+
+volumes:
+  cargo-home:
+  cargo-target:

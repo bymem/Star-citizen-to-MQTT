@@ -1,0 +1,6 @@
+/target
+# Recordings and extracted schemas can hold personal data and game-derived
+# content. Keep them out of git (spec §11).
+*.zip
+sc-recording-*/
+*.desc
